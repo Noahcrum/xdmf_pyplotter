@@ -93,6 +93,8 @@ def check_float(value):
 def check_color(value):
 	if is_color_like(value):
 		return value
+	elif value=='background':
+		return value
 	else:
 		raise argparse.ArgumentTypeError("%s is an invalid color value" % value)
 
@@ -112,6 +114,9 @@ settings_parser.add_argument(u'•text_color',type=check_color,default='black',h
 settings_parser.add_argument(u'•cbar_scale',type=str,default='lin',choices=['lin','log'],metavar="{{lin},log}",help='Linear or log scale colormap')
 settings_parser.add_argument(u'•cbar_domain_min',type=check_float,metavar=("{{auto},min}"),default='auto',help='The min domain of the color bar')
 settings_parser.add_argument(u'•cbar_domain_max',type=check_float,metavar=("{{auto},max}"),default='auto',help='The max domain of the color bar')
+settings_parser.add_argument(u'•cbar_over_color',type=check_color,default=None,help='color to use for values above color bar.  If not set, use cbar maximum')
+settings_parser.add_argument(u'•cbar_under_color',type=check_color,default=None,help='color to use for values below color bar. If not set, use cbar minimum')
+settings_parser.add_argument(u'•cbar_bad_color',type=check_color,default=None,help='color to use for bad values. If not set, they are tranparent')
 settings_parser.add_argument(u'•cbar_enabled',type=check_bool,choices=[True,False],metavar='{{True},False}',nargs=1,default=True,help='enable or disable colorbar')
 settings_parser.add_argument(u'•cbar_location',type=str,choices=['left','right','top','bottom'],metavar='{\'left\',{\'right\'},\'top\',\'bottom\'}',default='right',help='set the colorbar position')
 settings_parser.add_argument(u'•cbar_width',type=check_float,metavar='float',default='5.0',help='The width of the colorbar')
@@ -120,8 +125,8 @@ settings_parser.add_argument(u'•image_name',type=str,metavar='{{AttributeName}
 settings_parser.add_argument(u'•title_enabled',type=check_bool,choices=[True,False],metavar='{{True},False}',default=True,help='enable or disable the title that goes above the plot')
 settings_parser.add_argument(u'•title_font',type=str,metavar='str',help='choose the font of the plot title')
 settings_parser.add_argument(u'•title_font_size',type=check_int,default=18,metavar='int',help='font size for title')
-settings_parser.add_argument(u'•label_font_size',type=check_int,metavar='int',help='font size for axis labels')
-settings_parser.add_argument(u'•smooth_zones',type=check_bool,choices=[True,False],metavar='{True,{False}}',help='disable or enable zone smoothing')
+settings_parser.add_argument(u'•label_font_size',type=check_int,default=12,metavar='int',help='font size for axis labels')
+settings_parser.add_argument(u'•smooth_zones',type=check_bool,choices=[True,False],metavar='{True,{False}}',default=False,help='disable or enable zone smoothing')
 settings_parser.add_argument(u'•image_format',type=str,choices=['png','svg','pdf','ps','jpeg','gif','tiff','eps'],default='png',metavar="{{'png'},'svg','pdf','ps','jpeg','gif','tiff','eps'}",help='specify graph output format')
 settings_parser.add_argument(u'•image_size',type=check_int,nargs=2,metavar='int',default=[1280,710],help='specify the size of image')
 settings_parser.add_argument(u'•x_range_km',type=check_float,nargs=2,metavar=("{{auto},min}","{{auto},max}"),default=['auto','auto'],help='The range of the x axis in km')
@@ -134,6 +139,24 @@ settings_parser.add_argument(u'•ctime_enabled',type=check_bool,choices=[True,F
 settings_parser.add_argument(u'•elapsed_time_enabled',type=check_bool,choices=[True,False],metavar='{{True},False}',default=True,help='Boolean option for "elapsed time" display')
 settings_parser.add_argument(u'•zoom_value',type=check_float,help='The zoom value (percentage of total range) to use if the x or y range is set to \'auto\'')
 settings_parser.add_argument(u'•var_unit',type=str,default='auto',help='The unit to use for the plotted variable')
+settings_parser.add_argument(u'•shock_enabled', type=check_bool,choices=[True,False],metavar='{True,{False}}',default=False,help='Displays the supernova schockwave')
+settings_parser.add_argument(u'•shock_linestyle',type=str,default='solid',help='Sets the linestyle for the schock radius plot')
+settings_parser.add_argument(u'•legend_enabled', type=check_bool,choices=[True,False],metavar='{True,{False}}',default=False,help='Displays the legend of the graph')
+settings_parser.add_argument(u'•nse_c_contour', type=check_bool,choices=[True,False],metavar='{True,{False}}',default=False,help='Overlays the nse_c contour plot on the variable of interest plot')
+settings_parser.add_argument(u'•shock_line_width',type=check_float,default=7.,metavar='float',help='Sets the line width of the shock radius plot')
+settings_parser.add_argument(u'•shock_line_color',type=str,default='black',help='The line color of the shock radius plot')
+settings_parser.add_argument(u'•nse_c_line_widths',type=check_float,default=4.,metavar='float',help='Sets the line width of the nse_c contour plot')
+settings_parser.add_argument(u'•nse_cmap',type=str,choices=colormaps,default='binary',help='Colormap to use for nse_c contour plot')
+settings_parser.add_argument(u'•nse_c_linestyles',type=str,default='solid',help='Sets the linestyle for the nse_c contour plot')
+settings_parser.add_argument(u'•particle_overlay', type=check_bool,choices=[True,False],metavar='{True,{False}}',default=False,help='Overlays tracer particles on the plot')
+settings_parser.add_argument(u'•particle_color',type=str,default='black',help='The dot color of the tracer particle plot')
+settings_parser.add_argument(u'•particle_size',type=check_float,default=0.7,metavar='float',help='Sets the particle size of the tracer particle plot')
+settings_parser.add_argument(u'•particle_numbers', type=check_bool,choices=[True,False],metavar='{True,{False}}',default=False,help='Displays the tracer particles as numbers')
+settings_parser.add_argument(u'•particle_num_size',type=check_float,default=5,metavar='float',help='Sets the particle size of the tracer particle plot if the markers are set to numbers')
+settings_parser.add_argument(u'•shock_contour_enabled', type=check_bool,choices=[True,False],metavar='{True,{False}}',default=False,help='Displays the supernova schockwave as a contour plot')
+settings_parser.add_argument(u'•shock_contour_line_widths',type=check_float,default=4.,metavar='float',help='Sets the line width of the shock contour plot')
+settings_parser.add_argument(u'•shock_contour_cmap',type=str,choices=colormaps,default='binary_r',help='Colormap to use for shock contour plot')
+settings_parser.add_argument(u'•shock_contour_style',type=str,default='solid',help='Sets the linestyle for the shock contour plot')
 print_help()#print_help does a hacky help flag overload by intercepting the sys.argv before the parser in order to also print the help for the settings file
 #if the help flag isn't there, continue and parse arguments as normal
 args=parser.parse_args()
@@ -148,9 +171,9 @@ argslist=[i[1:] for i in settings_parser.__dict__['_option_string_actions'].keys
 if args.settingsfile and args.settingsfile!='':
 	settingsargs=[]
 	for super_arg in csv.reader(open(args.settingsfile).read().split('\n'),delimiter=' ',quotechar='"',escapechar='\\'):
-		if super_arg[0][0]+super_arg[0][1]=='//': #implement commenting
+		if not filter(None,super_arg) or super_arg[0][0]+super_arg[0][1]=='//': #implement commenting and avoid empty lines
 			continue 
-		for arg in super_arg:
+		for arg in filter(None,super_arg):
 			# account for the required '•' needed for argparse
 			if arg in argslist:
 				settingsargs.append(u'•'+arg) 
@@ -399,6 +422,105 @@ for file in args.files:
 	fig = plt.figure(figsize=(12.1,7.2))
 	fig.set_size_inches(12.1, 7.2,forward=True)
 	sp=fig.add_subplot(111)
+	
+	#The following branch will generate a line graph of the shock radius when enabled
+	if settings.shock_enabled:
+                plt.subplot(111)
+                try:
+                        theta = np.array(hf['/mesh/y_ef'][:])
+                        r = np.empty(theta.size)
+                        r[0:theta.size-1] = np.array(hf['analysis/r_shock'][0][:])
+                        r[-1] = r[-2]
+                except KeyError as e:
+                        eprint(e)
+                        eprint('Invalid pathway to data in h5 file.')
+                        sys.exit()
+		for num, arr_val in enumerate(theta):
+                        r[num], theta[num] = pol2cart(r[num], arr_val)
+		maximum = 0
+		for num, arr_val in enumerate(r):
+			if num == 0:
+				maximum = abs(arr_val)
+                        if arr_val > maximum:
+                                maximum = abs(arr_val)
+		i = 0
+		while maximum / 10 > 1:
+                        maximum = maximum/10
+                        i += 1
+                swr_cont = np.empty(1)
+                swt_cont = np.empty(1)
+                for num, arr_val in enumerate(r):
+                    if np.sqrt(arr_val**2 + theta[num]**2)<1*10**i and np.sqrt(arr_val**2 + theta[num]**2)>1*10**(i-1):
+                        pass
+                    elif np.sqrt(arr_val**2 + theta[num]**2)<1*10**(i-1):
+                        pass
+                    else:
+                        swr_cont = np.append(swr_cont, arr_val)
+                        swt_cont = np.append(swt_cont, theta[num])
+
+                plt.plot(swr_cont[1:]/1e5, swt_cont[1:]/1e5, c = settings.shock_line_color, linestyle = settings.shock_linestyle,\
+                         linewidth = settings.shock_line_width, zorder = 6, label = 'Shock Radius')
+	#The following branch will display the nse_c contour plot when enabled
+        if settings.nse_c_contour:
+                plt.subplot(111)
+                try:
+                        phi1 = np.array(hf['/mesh/y_ef'][:])
+                        rho1 = np.array(hf['/mesh/x_ef'][:])
+                        data = np.array(hf['abundance/nse_c'][:])
+                except KeyError as e:
+                        eprint(e)
+                        eprint('Invalid pathway to data in h5 file.')
+                        sys.exit()
+
+                data = data.reshape(phi1.size-1,rho1.size)      #Takes the 1xXxY data set form the h5 file and transforms into a 2D matrix
+                data2 = np.zeros((phi1.size, rho1.size))        #Initializes an array of zeros to be filled for the purpose of adding a row
+                data2[0:phi1.size-1] = data                     #Takes the data and fills it into the previously initialized array
+                data2[phi1.size-1]=data[phi1.size-2]            #Copies the last row of data into the last row of data2 to control for dimension mismatch
+
+                rho1, phi1 = np.meshgrid(rho1, phi1)            
+                var1, var2 = pol2cart(rho1, phi1)
+                bounds = np.linspace(0,1,1)
+
+                nse_c = plt.contour(var1/1e5, var2/1e5, data2, levels = bounds, cmap=settings.nse_cmap,\
+                                    zorder = 3, linewidths = settings.nse_c_line_widths, linestyles=settings.nse_c_linestyles)
+	#The following branch will print a label corresponding to the shock radius line. If the shock radius is not enabled a warning is output
+        if settings.legend_enabled:
+                if settings.shock_enabled:
+                        plt.legend()
+                else:
+                        qprint("No legend to print. The schock wave radius is not enabled")
+	#The following branch will overlay a scatter plot of tracer particles
+        if settings.particle_overlay:
+                plt.subplot(111)
+                try:
+                        px = np.array(hf['/particle/px'])
+                        py = np.array(hf['/particle/py'])
+                        #pz = np.array(h5file['/particle/pz'])
+                except KeyError as e:
+                        eprint('Particle data could no be found')
+                        sys.exit()
+                px, py = pol2cart(px, py)
+                if settings.particle_numbers:
+                        qprint('NOTICE: Printing particles as numbers will take some time')
+                        for num in range(px.size):
+                                plt.text(px[num]/1e5, py[num]/1e5, str(num), size = settings.particle_num_size, color = settings.particle_color)
+                else:
+                        particles = plt.scatter(px/1e5, py/1e5, s = settings.particle_size, color = settings.particle_color, zorder = 5)
+	#The following code overlays a 2-D shock contour
+        if settings.shock_contour_enabled:
+                plt.subplot(111)
+                try:
+                        rad = np.array(hf['/mesh/x_ef'][:])
+                        tht = np.array(hf['/mesh/y_ef'][:])
+                        f = np.array(hf['/fluid/shock'][:])
+                except KeyError as e:
+                        qprint("Shock data could not be found")
+                        sys.exit()
+                rad, tht = np.meshgrid(rad, tht)
+                var_r, var_t = pol2cart(rad, tht)
+                bds = np.linspace(0,1,2)
+                plt.contour(var_r/1e5, var_t/1e5, f, cmap=settings.shock_contour_cmap, levels = bds, zorder = 5, \
+                        linewidths = settings.shock_contour_line_widths, linestyles=settings.shock_contour_style)
 
 	# # Setup mouse-over string to interrogate data interactively when in polar coordinates
 	# def format_coord(x, y):
@@ -460,16 +582,35 @@ for file in args.files:
 	# Also create reversed version
 	cdict_r={'red':cdict['red'][::-1],'green':cdict['green'][::-1],'blue':cdict['blue'][::-1]}
 	hot_desaturated_r=LinearSegmentedColormap('hot_desaturated_r',cdict_r,N=256,gamma=1.0)
+
 	del cdict,cdict_r
 	if settings.cbar_scale=='log':
 		norm=LogNorm()
 	else:
 		norm=None
 	if settings.cbar_domain_min=='auto' and settings.cbar_domain_max=='auto':
-		pcolor=sp.pcolormesh(x, y, variable,cmap=[hot_desaturated,settings.cmap][settings.cmap!='hot_desaturated'],norm=norm)
+		pcolor=sp.pcolormesh(x, y, variable,cmap=[hot_desaturated,settings.cmap][settings.cmap!='hot_desaturated'],norm=norm,antialiased=settings.smooth_zones)
 	else:
-		pcolor=sp.pcolormesh(x, y, variable,cmap=[hot_desaturated,settings.cmap][settings.cmap!='hot_desaturated'],norm=norm,vmin=settings.cbar_domain_min,vmax=settings.cbar_domain_max)
-	
+		pcolor=sp.pcolormesh(x, y, variable,cmap=[hot_desaturated,settings.cmap][settings.cmap!='hot_desaturated'],norm=norm,vmin=settings.cbar_domain_min,vmax=settings.cbar_domain_max,antialiased=settings.smooth_zones)
+
+	if settings.cbar_over_color=='background':
+		pcolor.cmap.set_over(color=settings.background_color, alpha=None)
+		print('Using over color: background')
+	elif settings.cbar_over_color:
+		pcolor.cmap.set_over(color=settings.cbar_over_color, alpha=None)
+		print('Using over color:',settings.cbar_over_color)
+
+	if settings.cbar_under_color=='background':
+		pcolor.cmap.set_under(color=settings.background_color, alpha=None)
+		print('Using under color: background')
+	elif settings.cbar_under_color:
+		pcolor.cmap.set_under(color=settings.cbar_under_color, alpha=None)
+		print('Using under color:',settings.cbar_under_color)
+
+	if settings.cbar_bad_color:
+		pcolor.cmap.set_bad(color=settings.cbar_bad_color, alpha=None)
+		print('Using bad color:',settings.cbar_bad_color)
+
 	for atr in ['title','x_range_label','y_range_label']:
 		settings.__setattr__(atr,re.sub(r'\\var(?=[^i]|$)',TrueVarname,settings.__getattribute__(atr)))
 		settings.__setattr__(atr,re.sub(r'\\variable',TrueVarname.lower(),settings.__getattribute__(atr)))
